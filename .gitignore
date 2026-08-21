@@ -1,0 +1,17 @@
+.venv/
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+
+data/raw/*
+data/processed/*
+
+mlruns/
+*.log
+
+models/*.keras
+models/*.h5
+models/*.pt
+models/*.pkl
+
+.vscode/
