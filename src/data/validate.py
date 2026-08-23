@@ -25,7 +25,7 @@ def validate_images():
 
             try:
                 with Image.open(file_path) as image:
-                    image.verify()
+                    image.load()
 
                 results.append(
                     {

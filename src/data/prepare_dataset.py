@@ -12,7 +12,7 @@ def is_valid_image(file_path: Path) -> bool:
     """Return True if the file is a valid image."""
     try:
         with Image.open(file_path) as image:
-            image.verify()
+            image.load()
         return True
     except Exception:
         return False
