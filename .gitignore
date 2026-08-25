@@ -16,4 +16,11 @@ models/*.h5
 models/*.pt
 models/*.pkl
 
+# MLflow database
+mlflow.db
+
+# Generated training reports
+reports/confusion_matrix.txt
+reports/training_history.txt
+
 .vscode/
