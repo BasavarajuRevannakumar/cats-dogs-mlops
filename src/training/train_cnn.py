@@ -160,32 +160,39 @@ def main():
 
     args = parse_arguments()
 
+    # Configuration
+    learning_rate = args.learning_rate
+    batch_size = args.batch_size
+    epochs = args.epochs
+    dropout = args.dropout
+    run_name = args.run_name
+
     # Reproducibility
     tf.keras.utils.set_random_seed(SEED)
 
     print("\n==============================")
     print("CNN Training Configuration")
     print("==============================")
-    print(f"Learning rate : {args.learning_rate}")
-    print(f"Batch size    : {args.batch_size}")
-    print(f"Epochs        : {args.epochs}")
-    print(f"Dropout       : {args.dropout}")
-    print(f"Run name      : {args.run_name}")
+    print(f"Learning rate : {learning_rate}")
+    print(f"Batch size    : {batch_size}")
+    print(f"Epochs        : {epochs}")
+    print(f"Dropout       : {dropout}")
+    print(f"Run name      : {run_name}")
     print(f"Seed          : {SEED}")
     print("==============================\n")
 
     train_ds, val_ds, test_ds = create_datasets(
-        args.batch_size
+        batch_size
     )
 
     model = build_cnn(
         input_shape=(*IMG_SIZE, 3),
-        dropout_rate=args.dropout,
+        dropout_rate=dropout,
     )
 
     model.compile(
         optimizer=tf.keras.optimizers.Adam(
-            learning_rate=args.learning_rate
+            learning_rate=learning_rate
         ),
         loss="binary_crossentropy",
         metrics=["accuracy"],
@@ -201,7 +208,7 @@ def main():
     mlflow.set_experiment("cats-dogs-cnn")
 
     with mlflow.start_run(
-        run_name=args.run_name
+        run_name=run_name
     ):
 
         # Log hyperparameters
@@ -209,10 +216,10 @@ def main():
             {
                 "model": "CNN",
                 "image_size": "224x224",
-                "batch_size": args.batch_size,
-                "epochs": args.epochs,
-                "learning_rate": args.learning_rate,
-                "dropout": args.dropout,
+                "batch_size": batch_size,
+                "epochs": epochs,
+                "learning_rate": learning_rate,
+                "dropout": dropout,
                 "optimizer": "Adam",
                 "seed": SEED,
                 "early_stopping_patience": 3,
@@ -221,7 +228,7 @@ def main():
 
         # Save best model based on validation loss
         checkpoint_path = (
-            MODEL_DIR / f"{RUN_NAME}_best.keras"
+            MODEL_DIR / f"{run_name}_best.keras"
         )
 
         checkpoint = tf.keras.callbacks.ModelCheckpoint(
@@ -245,7 +252,7 @@ def main():
         history = model.fit(
             train_ds,
             validation_data=val_ds,
-            epochs=args.epochs,
+            epochs=epochs,
             callbacks=[
                 checkpoint,
                 early_stopping,
@@ -361,7 +368,7 @@ def main():
 
         # Save final best model
         final_model_path = (
-            MODEL_DIR / f"{RUN_NAME}_final.keras"
+            MODEL_DIR / f"{run_name}_final.keras"
         )
 
         model.save(final_model_path)
