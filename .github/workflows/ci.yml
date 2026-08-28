@@ -1,4 +1,4 @@
-name: CI - Test and Build Docker Image
+name: CI - Test, Build, Publish and Deploy
 
 on:
   push:
@@ -74,3 +74,56 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+  deploy:
+    name: Deploy to Minikube
+    runs-on: self-hosted
+    needs: docker
+    if: github.event_name == 'push' && github.ref == 'refs/heads/main'
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Verify deployment environment
+        run: |
+          docker --version
+          kubectl version --client
+          minikube version
+
+      - name: Verify Minikube
+        run: |
+          minikube status
+          kubectl get nodes
+
+      - name: Pull latest Docker image
+        run: |
+          docker pull ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+
+      - name: Load image into Minikube
+        run: |
+          minikube image load ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+
+      - name: Deploy to Kubernetes
+        run: |
+          kubectl apply -f k8s/deployment.yaml
+          kubectl apply -f k8s/service.yaml
+
+      - name: Update deployment image
+        run: |
+          kubectl set image deployment/cats-dogs-api \
+            cats-dogs-api=ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+
+      - name: Wait for rollout
+        run: |
+          kubectl rollout status deployment/cats-dogs-api --timeout=180s
+
+      - name: Verify deployment
+        run: |
+          kubectl get deployment cats-dogs-api
+          kubectl get pods -l app=cats-dogs-api
+          kubectl get service cats-dogs-service
+
+      - name: Run smoke tests
+        run: |
+          ./scripts/smoke_test.sh
