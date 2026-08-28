@@ -98,11 +98,11 @@ jobs:
 
       - name: Pull latest Docker image
         run: |
-          docker pull ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+          docker pull ghcr.io/basavarajurevannakumar/cats-dogs-api:latest
 
       - name: Load image into Minikube
         run: |
-          minikube image load ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+          minikube image load ghcr.io/basavarajurevannakumar/cats-dogs-api:latest
 
       - name: Deploy to Kubernetes
         run: |
@@ -112,7 +112,7 @@ jobs:
       - name: Update deployment image
         run: |
           kubectl set image deployment/cats-dogs-api \
-            cats-dogs-api=ghcr.io/${{ github.repository_owner }}/cats-dogs-api:latest
+            cats-dogs-api=ghcr.io/basavarajurevannakumar/cats-dogs-api:latest
 
       - name: Wait for rollout
         run: |
