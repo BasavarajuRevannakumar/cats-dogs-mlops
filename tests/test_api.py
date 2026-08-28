@@ -1,19 +1,30 @@
+from io import BytesIO
 from pathlib import Path
 
 import pytest
 from fastapi.testclient import TestClient
+from PIL import Image
 
 from src.api.app import app
 
 
 MODEL_PATH = Path("models/cnn-best-candidate_best.keras")
-TEST_IMAGE = next(Path("data/splits/test/Cat").glob("*"))
 
 
 @pytest.fixture
 def client():
-    with TestClient(app) as test_client:
-        yield test_client
+    with TestClient(app) as client:
+        yield client
+
+
+def create_test_image():
+    image = Image.new("RGB", (224, 224), color=(128, 128, 128))
+
+    buffer = BytesIO()
+    image.save(buffer, format="JPEG")
+    buffer.seek(0)
+
+    return buffer
 
 
 def test_health(client):
@@ -43,19 +54,18 @@ def test_model_exists():
 
 
 def test_predict_valid_image(client):
-    assert TEST_IMAGE.exists()
+    image = create_test_image()
 
-    with TEST_IMAGE.open("rb") as image:
-        response = client.post(
-            "/predict",
-            files={
-                "file": (
-                    TEST_IMAGE.name,
-                    image,
-                    "image/jpeg",
-                )
-            },
-        )
+    response = client.post(
+        "/predict",
+        files={
+            "file": (
+                "test.jpg",
+                image,
+                "image/jpeg",
+            )
+        },
+    )
 
     assert response.status_code == 200
 
