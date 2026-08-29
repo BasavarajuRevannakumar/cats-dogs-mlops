@@ -91,10 +91,25 @@ jobs:
           kubectl version --client
           minikube version
 
-      - name: Verify Minikube
+      - name: Ensure Minikube is running
         run: |
+          echo "Checking Minikube status..."
+
+          if ! minikube status --format='{{.Host}}' | grep -q "Running"; then
+              echo "Minikube is not running. Starting Minikube..."
+              minikube start --driver=docker
+          else
+              echo "Minikube is already running."
+          fi
+
+          echo "Minikube status:"
           minikube status
+
+          echo "Kubernetes nodes:"
           kubectl get nodes
+
+          echo "Waiting for Kubernetes node to become Ready..."
+          kubectl wait --for=condition=Ready node/minikube --timeout=120s
 
       - name: Pull latest Docker image
         run: |
