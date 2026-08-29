@@ -93,3 +93,22 @@ def test_predict_invalid_file_type(client):
     )
 
     assert response.status_code == 400
+
+def test_metrics(client):
+    response = client.get("/metrics")
+
+    assert response.status_code == 200
+
+    data = response.json()
+
+    assert "total_requests" in data
+    assert "successful_requests" in data
+    assert "failed_requests" in data
+    assert "prediction_requests" in data
+    assert "average_prediction_latency_ms" in data
+
+    assert data["total_requests"] >= 1
+    assert data["successful_requests"] >= 0
+    assert data["failed_requests"] >= 0
+    assert data["prediction_requests"] >= 0
+    assert data["average_prediction_latency_ms"] >= 0
